@@ -30,9 +30,16 @@ async function run() {
 }
 run().catch(console.dir);
 
+const database = client.db("docAppoint");
+const doctorsCollection = database.collection("doctors");
+
 app.get('/', (req,res)=>{
-    res.send("server is running properly,,");
+    res.send("server is running properly.");
 })
+app.get('/doctors', async (req, res) => {
+    const result = await doctorsCollection.find().toArray();
+    res.send(result);
+});
 
 app.listen(port, ()=>{
     console.log(`Server is running on port ${port}`);
