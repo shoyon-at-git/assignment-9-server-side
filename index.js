@@ -1,6 +1,6 @@
 require("dotenv").config();
 const express = require("express");
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = process.env.MONGODB_URI;
 const cors = require("cors")
 const app=express();
@@ -38,8 +38,14 @@ app.get('/', (req,res)=>{
 })
 app.get('/doctors', async (req, res) => {
     const result = await doctorsCollection.find().toArray();
-    res.send(result);
+    res.json(result);
 });
+
+app.get('/view-doctor/:id', async(req,res)=>{
+    const {id} = req.params;
+    const matchedDoctor = await doctorsCollection.findOne({_id:new ObjectId(id)});
+    res.json(matchedDoctor);
+})
 
 app.listen(port, ()=>{
     console.log(`Server is running on port ${port}`);
