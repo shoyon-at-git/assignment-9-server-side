@@ -32,6 +32,7 @@ run().catch(console.dir);
 
 const database = client.db("docAppoint");
 const doctorsCollection = database.collection("doctors");
+const bookingsCollection = database.collection("bookings");
 
 app.get('/', (req,res)=>{
     res.send("server is running properly.");
@@ -45,6 +46,12 @@ app.get('/view-doctor/:id', async(req,res)=>{
     const {id} = req.params;
     const matchedDoctor = await doctorsCollection.findOne({_id:new ObjectId(id)});
     res.json(matchedDoctor);
+})
+
+app.post('/add-booking', async(req,res)=>{
+  const bookingInfo = req.body;
+  const result = bookingsCollection.insertOne(bookingInfo);
+  res.send(result);
 })
 
 app.listen(port, ()=>{
