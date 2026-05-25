@@ -55,6 +55,11 @@ app.post('/add-booking', async(req,res)=>{
   res.send(result);
 })
 
+app.get('/appointments', async(req,res)=>{
+   const result = await bookingsCollection.find().toArray();
+   res.send(result);
+})
+
 app.get('/my-bookings', async(req,res)=>{
    const email = req.query.email;
    const result = await bookingsCollection.find({userEmail:email}).toArray();
