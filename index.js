@@ -2,7 +2,8 @@ require("dotenv").config();
 const express = require("express");
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = process.env.MONGODB_URI;
-const cors = require("cors")
+const cors = require("cors");
+const { createRemoteJWKSet, jwtVerify } = require("jose-cjs");
 const app=express();
 const port = process.env.PORT;
 
@@ -16,6 +17,28 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
+
+const JWKS = createRemoteJWKSet(
+  new URL("http://localhost:3000/api/auth/jwks")
+)
+const verifyToken = async(req,res,next)=>{
+  const authHeader = req?.headers.authorization;
+  if(!authHeader){
+    return res.status(401).json({message:"Unauthorized"});
+  }
+  const token = authHeader.split(" ")[1];
+  if(!token){
+    return res.status(401).json({message:"Unauthorized"});
+  }
+  try {
+    const {payload} =await jwtVerify(token, JWKS);
+    // console.log(payload);
+    next();
+  } catch (error) {
+    return res.status(403).json({message:"Forbidden"});
+  }
+}
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
@@ -38,12 +61,12 @@ const usersCollection = database.collection("user");
 app.get('/', (req,res)=>{
     res.send("server is running properly.");
 })
-app.get('/doctors', async (req, res) => {
+app.get('/doctors',verifyToken, async (req, res) => {
     const result = await doctorsCollection.find().toArray();
     res.json(result);
 });
 
-app.get('/view-doctor/:id', async(req,res)=>{
+app.get('/view-doctor/:id', verifyToken ,async(req,res)=>{
     const {id} = req.params;
     const matchedDoctor = await doctorsCollection.findOne({_id:new ObjectId(id)});
     res.json(matchedDoctor);
@@ -55,12 +78,12 @@ app.post('/add-booking', async(req,res)=>{
   res.send(result);
 })
 
-app.get('/appointments', async(req,res)=>{
+app.get('/appointments',verifyToken, async(req,res)=>{
    const result = await bookingsCollection.find().toArray();
    res.send(result);
 })
 
-app.get('/my-bookings', async(req,res)=>{
+app.get('/my-bookings',verifyToken, async(req,res)=>{
    const email = req.query.email;
    const result = await bookingsCollection.find({userEmail:email}).toArray();
    res.send(result);
@@ -74,7 +97,7 @@ app.delete('/delete-booking/:id', async(req,res)=>{
   res.send(result);
 })
 
-app.get("/bookings/:id", async (req, res) => {
+app.get("/bookings/:id",verifyToken, async (req, res) => {
 
     const id = req.params.id;
 
