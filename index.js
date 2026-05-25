@@ -33,6 +33,7 @@ run().catch(console.dir);
 const database = client.db("docAppoint");
 const doctorsCollection = database.collection("doctors");
 const bookingsCollection = database.collection("bookings");
+const usersCollection = database.collection("user");
 
 app.get('/', (req,res)=>{
     res.send("server is running properly.");
@@ -52,6 +53,54 @@ app.post('/add-booking', async(req,res)=>{
   const bookingInfo = req.body;
   const result = bookingsCollection.insertOne(bookingInfo);
   res.send(result);
+})
+
+app.get('/my-bookings', async(req,res)=>{
+   const email = req.query.email;
+   const result = await bookingsCollection.find({userEmail:email}).toArray();
+   res.send(result);
+})
+
+app.delete('/delete-booking/:id', async(req,res)=>{
+  const id = req.params.id;
+  const result= await bookingsCollection.deleteOne({
+    _id:new ObjectId(id)
+  })
+  res.send(result);
+})
+
+app.get("/bookings/:id", async (req, res) => {
+
+    const id = req.params.id;
+
+    const result = await bookingsCollection.findOne({
+        _id: new ObjectId(id),
+    });
+
+    res.send(result);
+});
+
+app.patch('/edit-booking/:id',(req,res)=>{
+  const id = req.params.id;
+  const updatedBooking = req.body;
+  const result = bookingsCollection.updateOne({_id:new ObjectId(id)}, {$set:updatedBooking});
+  res.send(result);
+})
+
+app.patch('/update-user',async(req,res)=>{
+  const {email,name,image} = req.body;
+  const result =
+        await usersCollection.updateOne(
+            { email },
+            {
+                $set: {
+                    name,
+                    image,
+                },
+            }
+        );
+
+    res.send(result);
 })
 
 app.listen(port, ()=>{
