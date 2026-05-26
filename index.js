@@ -72,9 +72,9 @@ app.get('/view-doctor/:id', verifyToken ,async(req,res)=>{
     res.json(matchedDoctor);
 })
 
-app.post('/add-booking', async(req,res)=>{
+app.post('/add-booking',verifyToken, async(req,res)=>{
   const bookingInfo = req.body;
-  const result = bookingsCollection.insertOne(bookingInfo);
+  const result = await bookingsCollection.insertOne(bookingInfo);
   res.send(result);
 })
 
@@ -89,7 +89,7 @@ app.get('/my-bookings',verifyToken, async(req,res)=>{
    res.send(result);
 })
 
-app.delete('/delete-booking/:id', async(req,res)=>{
+app.delete('/delete-booking/:id',verifyToken, async(req,res)=>{
   const id = req.params.id;
   const result= await bookingsCollection.deleteOne({
     _id:new ObjectId(id)
@@ -108,28 +108,29 @@ app.get("/bookings/:id",verifyToken, async (req, res) => {
     res.send(result);
 });
 
-app.patch('/edit-booking/:id',(req,res)=>{
+app.patch('/edit-booking/:id',verifyToken,async(req,res)=>{
   const id = req.params.id;
   const updatedBooking = req.body;
-  const result = bookingsCollection.updateOne({_id:new ObjectId(id)}, {$set:updatedBooking});
+  const result =await bookingsCollection.updateOne({_id:new ObjectId(id)}, {$set:updatedBooking});
   res.send(result);
 })
 
-app.patch('/update-user',async(req,res)=>{
-  const {email,name,image} = req.body;
-  const result =
-        await usersCollection.updateOne(
-            { email },
-            {
-                $set: {
-                    name,
-                    image,
-                },
-            }
-        );
+// app.patch('/update-user',verifyToken,async(req,res)=>{
+//   const {email,name,image} = req.body;
+//   console.log("BODY:", req.body);
+//   const result =
+//         await usersCollection.updateOne(
+//             { email },
+//             {
+//                 $set: {
+//                     name,
+//                     image,
+//                 },
+//             }
+//         );
 
-    res.send(result);
-})
+//     res.send(result);
+// })
 
 app.listen(port, ()=>{
     console.log(`Server is running on port ${port}`);
