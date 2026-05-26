@@ -61,6 +61,10 @@ const usersCollection = database.collection("user");
 app.get('/', (req,res)=>{
     res.send("server is running properly.");
 })
+app.get('/top-doctors', async (req, res) => {
+    const result = (await doctorsCollection.find().limit(3).toArray());
+    res.json(result);
+});
 app.get('/doctors',verifyToken, async (req, res) => {
     const result = await doctorsCollection.find().toArray();
     res.json(result);
